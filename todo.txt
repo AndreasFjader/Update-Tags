@@ -1,0 +1,11 @@
+[Ny funktionalitet]
+* Full beskrivning i början av programmet
+* Loggar
+* Automatisk nedladdning av komponenter som behövs för att scriptet ska köras (i.e. Requests)
+* Kontrollera att alla taggar i CSV filen finns på kunden 'all_tags_table' innan uppdatering påbörjas.
+* Skapa ny funktion för att uppdatera taggen på ett skift, för att undvika samma kod på flera ställen.
+
+[Finslipning]
+* Undvik uppdatering av taggar ifall det redan är korrekt tagg
+* Använd samma ord och formuleringar i hela scriptet
+* Skriv en beskrivning av varje metod eller funktion
