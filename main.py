@@ -224,7 +224,10 @@ def main():
                                 print(f"Tag with ext code {new_tag_ext_id} for shift type {shift['shiftTypeId']} in CSV file, was not found among the customer's existing tags.")
                                 continue
                             
-                            if "tags" in shift:
+                            if "tags" not in shift:
+                                shift["tags"] = []
+                            
+                            if len(shift["tags"]) > 0:
                                 for tag in shift["tags"]:
                                     tag["id"] = all_tags_table[new_tag_ext_id]["id"]
                                     tag["name"] = all_tags_table[new_tag_ext_id]["name"]
@@ -232,7 +235,6 @@ def main():
                                     tag["tagCategory"]["name"] = all_tags_table[new_tag_ext_id]["categoryName"]
                                     tag["tagCategory"]["color"] = all_tags_table[new_tag_ext_id]["categoryColor"]
                             else:
-                                shift["tags"] = []
                                 shift["tags"].append({
                                     "id": all_tags_table[new_tag_ext_id]["id"],
                                     "name": all_tags_table[new_tag_ext_id]["name"],
@@ -377,7 +379,10 @@ def main():
                     if new_tag_ext_id not in all_tags_table:
                         continue
                     
-                    if "tags" in shift:
+                    if "tags" not in shift:
+                        shift["tags"] = []
+                    
+                    if len(shift["tags"]) > 0:
                         for tag in shift["tags"]:
                             tag["id"] = all_tags_table[new_tag_ext_id]["id"]
                             tag["name"] = all_tags_table[new_tag_ext_id]["name"]
@@ -385,7 +390,6 @@ def main():
                             tag["tagCategory"]["name"] = all_tags_table[new_tag_ext_id]["categoryName"]
                             tag["tagCategory"]["color"] = all_tags_table[new_tag_ext_id]["categoryColor"]
                     else:
-                        shift["tags"] = []
                         shift["tags"].append({
                             "id": all_tags_table[new_tag_ext_id]["id"],
                             "name": all_tags_table[new_tag_ext_id]["name"],
