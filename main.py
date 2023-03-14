@@ -71,8 +71,23 @@ def http_with_retry(action, url, auth, body=None):
     
     return response
 
+def get_unit_and_section_group_ids(group_tree: list):
+    group_ids = []
+    
+    for domain in group_tree:
+        for region in domain["hasAccess"]:
+            for unit in region["hasAccess"]:
+                if unit["typeId"] == 5:
+                    group_ids.append(unit["id"])
+                    
+                    for section in unit["hasAccess"]:
+                        if section["typeId"] == 7:
+                            group_ids.append(section["id"])
+    
+    return group_ids
+
 # NOT IN USE YET.
-def get_group_ids(group_tree: list, only_these_groups: set, get_all: bool):
+def get_group_ids_with_sub_groups(group_tree: list, only_these_groups: list, get_all: bool):
     group_ids = []
     
     if len(group_tree) == 0:
@@ -81,12 +96,12 @@ def get_group_ids(group_tree: list, only_these_groups: set, get_all: bool):
     for group in group_tree:
         include_all_sub_groups = get_all
         if (group["id"] in only_these_groups) or get_all:
-            if group["typeId"] == 5 or group["typeId"] == 7:
+            if group["typeId"] == 5:
                 group_ids.append(group["id"])
             include_all_sub_groups = True
 
         if len(group["hasAccess"]) > 0:
-            group_ids.extend(get_group_ids(group["hasAccess"], only_these_groups, include_all_sub_groups))
+            group_ids.extend(get_group_ids_with_sub_groups(group["hasAccess"], only_these_groups, include_all_sub_groups))
         
     return group_ids
 
@@ -114,6 +129,7 @@ def main():
     from_date_raw = config_data["fromDate"]
     to_date_raw = config_data["toDate"]
     domain_group_id = config_data["domainGroupId"]
+    update_group_ids = config_data["groupIds"]
     apply_to_schedule = config_data["applyTo"]["schedule"]
     apply_to_base_schedule = config_data["applyTo"]["baseSchedule"]
     apply_to_shift_types = config_data["applyTo"]["shiftTypes"]
@@ -189,20 +205,32 @@ def main():
     group_data = json.loads(group_data_response.text)
     
     group_info_for_shift_types = []
-    include_all_sub_groups = False
 
-    for domain in group_data:
-        for region in domain["hasAccess"]:
-            for unit in region["hasAccess"]:
-                if unit["typeId"] == 5:
-                    group_ids.append(unit["id"])
+    # for domain in group_data:
+    #     for region in domain["hasAccess"]:
+    #         for unit in region["hasAccess"]:
+    #             if unit["typeId"] == 5:
+    #                 group_ids.append(unit["id"])
 
-                    if apply_to_shift_types:
-                        group_info_for_shift_types.append(unit["id"])
-                        for section in unit["hasAccess"]:
-                            if section["typeId"] == 7:
-                                group_info_for_shift_types.append(section["id"])
+    #                 if apply_to_shift_types:
+    #                     group_info_for_shift_types.append(unit["id"])
+    #                     for section in unit["hasAccess"]:
+    #                         if section["typeId"] == 7:
+    #                             group_info_for_shift_types.append(section["id"])
     
+    # Get the group ID:s and their sub-groups IF we update the schedule.
+    if apply_to_schedule:
+        group_ids = get_group_ids_with_sub_groups(group_data, update_group_ids if len(update_group_ids) > 0 else [domain_group_id], False)
+
+    # Get the group ID:s for all units and sections IF we update either base schedules or shift types.
+    if apply_to_base_schedule or apply_to_shift_types:
+        group_ids_for_shift_type_and_base_schedules = get_unit_and_section_group_ids(group_data)
+
+    #DEBUG
+    print(group_ids)
+    print(group_ids_for_shift_type_and_base_schedules)
+    
+    input("Halting for debugging...")
     # Begin update.    
     if apply_to_base_schedule:
         print("################## Updating base schedule ##################")
